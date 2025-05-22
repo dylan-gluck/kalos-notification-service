@@ -1,0 +1,7 @@
+[project]
+name = "kalos-notification-service"
+version = "0.0.1"
+description = "Slack notification service"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []

@@ -24,8 +24,6 @@ Notification service is a Python API that can be used to send notifications to S
 	- data: string | string[]
 	- links: string[]
 
----
-
 ### Questions
 
 - How much intelligence in service vs on Kalos?
@@ -41,6 +39,32 @@ Notification service is a Python API that can be used to send notifications to S
 	- 200 --> Success posting to channel
 
 ---
+
+### Developing Locally:
+
+Dependencies:
+- Python 3.11
+- UV ^0.7.2
+
+1. Copy `.env.example` to `.env`. Add OPENAI_API_KEY.
+```bash
+cp .env.example .env
+```
+
+2. Set up virtual environment
+```bash
+uv venv
+```
+
+3. Install dependencies
+```bash
+uv sync
+```
+
+4. Start dev server
+```bash
+uv run fastapi dev
+```
 
 ### TODO
 
