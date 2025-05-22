@@ -4,16 +4,17 @@ Design a notification service / api that posts slack messages to client channels
 
 ### Approach
 
-Slack App to identify as "Blue" or Blue Bot
-
-- Could match tone, friendly etc
-- "Hey there! I just <change-made/> on <campaign-name/>"
-- "New insights from your campaign: <campaign-name/>"
+Slack App to identify as "Blue" or Blue Bot. Could match tone, friendly etc. Example messages:
+- "Hey there! I just `<change-made/>` on `<campaign-name/>`"
+- "New insights from your campaign: `<campaign-name/>`"
 	- List of insights as bullets
-- "Action Required: <message/>"
+- "Action Required: `<message/>`"
 	- Link
 
 Notification service is a Python API that can be used to send notifications to Slack channels.
+- Simple interface
+- LLM to format message
+- Slack integration to post to channels
 
 **API design:**
 
