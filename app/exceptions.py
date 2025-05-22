@@ -16,6 +16,12 @@ class SlackAPIError(NotificationServiceError):
     pass
 
 
+class SlackIntegrationError(NotificationServiceError):
+    """Raised when Slack integration fails"""
+
+    pass
+
+
 class LLMError(NotificationServiceError):
     """Raised when LLM formatting fails"""
 

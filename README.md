@@ -61,28 +61,57 @@ The API will be available at `http://localhost:8000` with interactive documentat
 Send a POST request to `/notify` with the following payload:
 
 ```bash
+# Change notification example
 curl -X POST "http://localhost:8000/notify" \
   -H "Content-Type: application/json" \
   -d '{
     "type": "change",
-    "customer": "acme-corp",
-    "campaign": "Q4 Launch Campaign",
-    "data": "Added new user: john.doe@acme.com to the account"
+    "customer": "hsbc",
+    "campaign": "Investment Bankers, Thought-leadership",
+    "data": ["Added 15 new prospects to targeting list", "Increased monthly spend from $25k to $40k"]
+  }'
+
+# Learning notification example  
+curl -X POST "http://localhost:8000/notify" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "learning",
+    "customer": "goldman",
+    "campaign": "Wealth Managers, Conversational",
+    "data": ["Conversion rate up 18% month-over-month", "Cost per lead decreased by $45", "Video completion rate: 78%"]
+  }'
+
+# Update notification example
+curl -X POST "http://localhost:8000/notify" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "update", 
+    "customer": "anthropic",
+    "campaign": "AI Engineers, Video",
+    "data": "Monthly spend limit reached - approval needed to continue campaign",
+    "links": ["https://getkalos.com/account/approve-budget", "https://getkalos.com/campaigns/ai-engineers/settings"]
   }'
 ```
 
 ### Notification Types
 
-- **`change`**: System changes, user additions, configuration updates
-  - Example: "Hey there! I just added new user: john.doe@acme.com on Q4 Launch Campaign"
+- **`change`**: Changes made by the Blue agent on behalf of Kalos
+  - Examples: Campaign modifications, new user additions, budget adjustments
+  - Data: Single string or array of strings describing the changes made
+  - Links: Not applicable for change notifications
+  - LLM Format: Friendly acknowledgment of actions taken
 
-- **`learning`**: Insights, analytics, and discoveries
-  - Example: "New insights from your campaign: Q4 Launch Campaign"
-  - Formats data as bullet points
+- **`learning`**: Insights generated about active campaigns
+  - Examples: Performance analytics, user behavior patterns, optimization recommendations
+  - Data: Array of insights/data points discovered by analysis
+  - Links: Not applicable for learning notifications  
+  - LLM Format: Structured presentation of insights and discoveries
 
-- **`update`**: Action required notifications
-  - Example: "Action Required: Review pending campaign settings"
-  - Includes prominent call-to-action
+- **`update`**: Action required notifications for users
+  - Examples: Budget approval requests, campaign review needs, configuration confirmations
+  - Data: Description of the action needed
+  - Links: Required - URLs to take the specified action (e.g., https://getkalos.com/account/approve-budget)
+  - LLM Format: Clear call-to-action with prominent action links
 
 ### Request Schema
 
@@ -91,7 +120,7 @@ curl -X POST "http://localhost:8000/notify" \
   "type": "change" | "learning" | "update",
   "customer": string,           // Customer identifier
   "campaign": string?,          // Optional campaign name
-  "data": string | string[],    // Notification content
+  "data": string | string[],    // Unstructured notification data (formatted by LLM)
   "links": string[]             // Related URLs
 }
 ```
@@ -188,6 +217,22 @@ uv add --dev package-name
 3. Install app to workspace
 4. Copy Bot User OAuth Token to `SLACK_BOT_TOKEN`
 
+### Channel Management
+
+#### Channel Naming Convention
+
+Customer names map to channels using a standardized format:
+- **Client Format**: All lowercase, no spaces (e.g., `goldman`, `openai`)
+- **Channel Format**: Always `${client-name}-private` (e.g., `openai-private`, `goldman-private`)
+- **Request Assumption**: Client names in requests are pre-formatted correctly
+
+#### Error Handling
+
+If posting to a customer channel fails with `channel_not_found`:
+- Automatically post error details to `kalos-internal` Slack channel
+- Include information about the requested client and channel name
+- Log the error for debugging purposes
+
 ## Development Status
 
 ### Completed (Phase 1)
@@ -198,16 +243,22 @@ uv add --dev package-name
 - [x] Health check endpoints
 - [x] Code formatting and linting setup
 
-### In Progress
-- [ ] **Phase 2**: Slack SDK integration
-  - [ ] Channel discovery and mapping
-  - [ ] Message posting functionality
-  - [ ] Slack API error handling
+### Completed (Phase 2)
+- [x] **Slack SDK integration**
+  - [x] Slack WebClient integration with bot token authentication
+  - [x] Channel discovery and mapping (`{customer}-private` format)
+  - [x] Message posting functionality to customer channels
+  - [x] Comprehensive Slack API error handling
+  - [x] Automatic fallback to `kalos-internal` for channel not found errors
+  - [x] Connection validation and health checks
+  - [x] Basic message formatting as bridge to LLM integration
 
+### In Progress
 - [ ] **Phase 3**: LLM Message Formatting
-  - [ ] OpenAI agents integration
-  - [ ] Message template system
-  - [ ] Blue Bot persona implementation
+  - [ ] OpenAI agents integration for intelligent message formatting
+  - [ ] Custom message formatting based on notification type and unstructured data
+  - [ ] Blue Bot persona implementation for consistent tone
+  - [ ] Support for single string or array of strings in data parameter
 
 ## Documentation
 

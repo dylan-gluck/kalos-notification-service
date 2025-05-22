@@ -93,28 +93,37 @@ class NotificationResponse(BaseModel):
 
 ## Message Formatting
 
-### Message Templates by Type
+### Notification Type Specifications
 
 **Change Notifications:**
-- "Hey there! I just `<change-made>` on `<campaign-name>`"
-- Include links as action buttons or inline links
+- **Purpose**: Actions taken by Blue agent on behalf of Kalos
+- **Data Input**: Single string or array of strings describing changes made
+- **Links**: Not applicable (change notifications don't include action links)
+- **LLM Formatting**: Friendly acknowledgment of completed actions
+- **Example**: "Hey there! I just added 15 new prospects to targeting list and increased your monthly spend from $25k to $40k for Investment Bankers, Thought-leadership campaign"
 
 **Learning Notifications:**
-- "New insights from your campaign: `<campaign-name>`"
-- Format data as bullet points
-- Include relevant links
+- **Purpose**: Insights and analytics discovered about active campaigns
+- **Data Input**: Array of insights/data points from campaign analysis
+- **Links**: Not applicable (learning notifications are informational)
+- **LLM Formatting**: Structured presentation of discoveries and insights
+- **Example**: "New insights from your Wealth Managers, Conversational campaign: Conversion rate up 18% month-over-month, Cost per lead decreased by $45, Video completion rate: 78%"
 
 **Update Notifications:**
-- "Action Required: `<message>`"
-- Include primary action link
-- Clear call-to-action formatting
+- **Purpose**: Action required from the user
+- **Data Input**: Description of the action needed
+- **Links**: Required - URLs for taking the specified action (e.g., https://getkalos.com/account/approve-budget)
+- **LLM Formatting**: Clear call-to-action with prominent action links
+- **Example**: "Action Required: Monthly spend limit reached for AI Engineers, Video campaign - approval needed to continue. [Approve Budget] [Review Settings]"
 
-### LLM Integration
+### LLM Integration Requirements
 
-- Use OpenAI agents to format messages based on type, customer context, and data
-- Maintain consistent "Blue Bot" friendly persona
-- Ensure messages are concise and actionable
+- Use OpenAI agents to format unstructured data into contextual messages
+- Maintain consistent "Blue Bot" friendly persona across all notification types
+- Support both single string and array of strings for data parameter
 - Include campaign context when provided
+- Format links appropriately for update notifications only
+- Ensure messages are concise, actionable, and type-appropriate
 
 ## Error Handling Strategy
 
@@ -147,6 +156,11 @@ class NotificationResponse(BaseModel):
    - Customer channel not found
    - Authentication errors
 
+3. **Channel Not Found (Special Handling)**:
+   - When target customer channel `${client-name}-private` doesn't exist
+   - Post error notification to `kalos-internal` channel
+   - Include client name and attempted channel in error message
+
 ### Error Recovery
 
 - Log all errors for debugging
@@ -167,7 +181,22 @@ class NotificationResponse(BaseModel):
 
 ### Channel Management
 
-- Maintain customer-to-channel mapping
+#### Channel Naming Convention
+
+Customer names map to channels using a standardized format:
+- **Client Format**: All lowercase, no spaces (e.g., `goldman`, `openai`)
+- **Channel Format**: Always `${client-name}-private` (e.g., `openai-private`, `goldman-private`)
+- **Request Assumption**: Client names in requests are pre-formatted correctly
+
+#### Error Handling
+
+If posting to a customer channel fails with `channel_not_found`:
+- Automatically post error details to `kalos-internal` Slack channel
+- Include information about the requested client and channel name
+- Log the error for debugging purposes
+
+#### Channel Access
+
 - Support both public and private channels
 - Handle channel access permissions
 - Validate channel existence before posting
@@ -242,28 +271,35 @@ uvx pytest --cov=.
 
 ## Implementation Checklist
 
-### Phase 1: Core API
-- [ ] Set up FastAPI application structure
-- [ ] Implement Pydantic models
-- [ ] Create `/notify` endpoint
-- [ ] Add request validation
-- [ ] Implement basic error handling
+### Phase 1: Core API (COMPLETED)
+- [x] Set up FastAPI application structure
+- [x] Implement Pydantic models
+- [x] Create `/notify` endpoint
+- [x] Add request validation
+- [x] Implement basic error handling
 
-### Phase 2: Slack Integration
-- [ ] Set up Slack App and permissions
-- [ ] Integrate Slack SDK
-- [ ] Implement channel discovery
-- [ ] Add message posting functionality
-- [ ] Handle Slack API errors
+### Phase 2: Slack Integration (COMPLETED)
+- [x] Set up Slack App and permissions
+- [x] Integrate Slack SDK
+- [x] Implement channel discovery (`{customer}-private` format)
+- [x] Add message posting functionality
+- [x] Handle Slack API errors with fallback to kalos-internal
+- [x] Connection validation and health checks
+- [x] Comprehensive testing with real Slack integration
 
-### Phase 3: LLM Integration
-- [ ] Integrate OpenAI agents
-- [ ] Implement message formatting logic
-- [ ] Add persona and tone consistency
-- [ ] Handle LLM API errors
+### Phase 3: LLM Integration (IN PROGRESS)
+- [ ] Integrate OpenAI agents for intelligent message formatting
+- [ ] Implement notification type-specific formatting:
+  - [ ] **Change**: Friendly acknowledgment of Blue agent actions
+  - [ ] **Learning**: Structured presentation of campaign insights
+  - [ ] **Update**: Clear call-to-action with prominent links
+- [ ] Support unstructured data input (string or array of strings)
+- [ ] Add Blue Bot persona and tone consistency
+- [ ] Handle LLM API errors with graceful fallbacks
 
 ### Phase 4: Testing & Polish
-- [ ] Write comprehensive tests
+- [x] Write comprehensive Slack integration tests
+- [ ] Add LLM integration tests
 - [ ] Add logging and monitoring
 - [ ] Performance optimization
 - [ ] Documentation updates
