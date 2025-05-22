@@ -49,7 +49,7 @@ A Python API service that intelligently formats and sends notifications to custo
 
 4. **Start the development server**
    ```bash
-   uv run fastapi dev app/main.py
+   uv run fastapi dev
    ```
 
 The API will be available at `http://localhost:8000` with interactive documentation at `http://localhost:8000/docs`.
