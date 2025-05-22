@@ -6,7 +6,9 @@ from app.exceptions import (
     SlackIntegrationError,
 )
 from app.services.slack_client import SlackService
+from app.services.message_formatter import MessageFormatter
 import logging
+import os
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -31,12 +33,20 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
             f"Received notification request for customer {request.customer}, type {request.type}"
         )
 
-        # Initialize Slack service
+        # Initialize services
         slack_service = SlackService()
 
-        # TODO: Phase 3 - Add LLM message formatting
-        # For now, create a simple formatted message
-        formatted_message = _create_simple_message(request)
+        # Initialize message formatter (uses openai-agents which handles API key automatically)
+        message_formatter = MessageFormatter()
+
+        # Format message using LLM
+        formatted_message = await message_formatter.format_message(
+            notification_type=request.type,
+            customer=request.customer,
+            data=request.data,
+            campaign=request.campaign,
+            links=request.links,
+        )
 
         # Post message to Slack
         message_id = await slack_service.post_message(
@@ -60,20 +70,3 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
-
-def _create_simple_message(request: NotificationRequest) -> str:
-    """
-    Create a simple formatted message for the notification.
-    This is a temporary implementation until LLM formatting is added.
-    """
-    campaign_text = f" on {request.campaign}" if request.campaign else ""
-
-    if request.type == "change":
-        return f"Hey there! Change notification for {request.customer}{campaign_text}: {request.data}"
-    elif request.type == "learning":
-        return f"New insights for {request.customer}{campaign_text}: {request.data}"
-    elif request.type == "update":
-        return f"Action Required for {request.customer}{campaign_text}: {request.data}"
-    else:
-        return f"Notification for {request.customer}{campaign_text}: {request.data}"

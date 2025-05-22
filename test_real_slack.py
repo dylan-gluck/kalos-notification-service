@@ -113,7 +113,7 @@ async def test_channel_not_found():
             links=[],
         )
 
-        response = await send_notification(request)
+        await send_notification(request)
         print(
             "   UNEXPECTED: Message posted successfully when channel should not exist"
         )

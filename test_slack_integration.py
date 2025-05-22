@@ -67,12 +67,11 @@ async def test_slack_service():
     print("\nSlack service tests completed!")
 
 
-def test_simple_message_formatting():
+async def test_simple_message_formatting():
     """Test the simple message formatting function"""
     print("\nTesting simple message formatting:")
 
-    from app.routers.notifications import _create_simple_message
-    from app.types import NotificationRequest, NotificationType
+    from app.types import NotificationType
 
     test_cases = [
         {
@@ -105,12 +104,25 @@ def test_simple_message_formatting():
         },
     ]
 
-    for case in test_cases:
-        request = NotificationRequest(**case)
-        message = _create_simple_message(request)
-        print(f"   {request.type}: {message}")
+    # Test message formatter fallback functionality
+    from app.services.message_formatter import MessageFormatter
 
-    print("Message formatting tests completed!")
+    formatter = MessageFormatter()
+
+    # Mock the agents to force fallback behavior
+    with patch("app.services.message_formatter.Runner.run") as mock_run:
+        mock_run.side_effect = Exception("Simulated API failure")
+
+        for case in test_cases:
+            message = await formatter.format_message(
+                notification_type=case["type"],
+                customer=case["customer"],
+                data=case["data"],
+            )
+            print(f"   {case['type'].value} fallback: {message}")
+            assert "Update from Blue:" in message  # Should trigger fallback
+
+    print("Message formatting fallback tests completed!")
 
 
 def test_slack_connection_validation():

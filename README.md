@@ -71,7 +71,7 @@ curl -X POST "http://localhost:8000/notify" \
     "data": ["Added 15 new prospects to targeting list", "Increased monthly spend from $25k to $40k"]
   }'
 
-# Learning notification example  
+# Learning notification example
 curl -X POST "http://localhost:8000/notify" \
   -H "Content-Type: application/json" \
   -d '{
@@ -85,7 +85,7 @@ curl -X POST "http://localhost:8000/notify" \
 curl -X POST "http://localhost:8000/notify" \
   -H "Content-Type: application/json" \
   -d '{
-    "type": "update", 
+    "type": "update",
     "customer": "anthropic",
     "campaign": "AI Engineers, Video",
     "data": "Monthly spend limit reached - approval needed to continue campaign",
@@ -104,7 +104,7 @@ curl -X POST "http://localhost:8000/notify" \
 - **`learning`**: Insights generated about active campaigns
   - Examples: Performance analytics, user behavior patterns, optimization recommendations
   - Data: Array of insights/data points discovered by analysis
-  - Links: Not applicable for learning notifications  
+  - Links: Not applicable for learning notifications
   - LLM Format: Structured presentation of insights and discoveries
 
 - **`update`**: Action required notifications for users
@@ -145,16 +145,20 @@ app/
 ├── main.py                  # FastAPI application entry point
 ├── types.py                 # Pydantic models and type definitions
 ├── exceptions.py            # Custom exception classes
-└── routers/
+├── routers/
+│   ├── __init__.py
+│   └── notifications.py    # Notification endpoint handlers
+└── services/
     ├── __init__.py
-    └── notifications.py     # Notification endpoint handlers
+    ├── message_formatter.py # OpenAI LLM message formatting service
+    └── slack_client.py      # Slack SDK integration service
 ```
 
 ### Technology Stack
 
 - **FastAPI**: Modern, fast web framework for building APIs
 - **Pydantic**: Data validation using Python type annotations
-- **OpenAI Agents**: LLM integration for intelligent message formatting
+- **OpenAI API**: LLM integration for intelligent message formatting with Blue Bot persona
 - **Slack SDK**: Official Slack API client for Python
 - **UV**: Fast Python package installer and resolver
 - **Ruff**: High-performance Python linter and formatter
@@ -162,10 +166,11 @@ app/
 ### Key Components
 
 1. **Request Validation**: Pydantic models ensure type safety and validation
-2. **Message Formatting**: OpenAI LLM creates contextual, friendly messages
-3. **Slack Integration**: Automated posting to customer-specific channels
-4. **Error Handling**: Comprehensive error responses and logging
-5. **Health Monitoring**: Built-in health check endpoints
+2. **Message Formatting Service**: OpenAI LLM creates contextual, friendly messages with Blue Bot persona
+3. **Slack Integration Service**: Automated posting to customer-specific channels with error handling
+4. **Notification Router**: FastAPI endpoints handling different notification types
+5. **Error Handling**: Comprehensive error responses, logging, and fallback to kalos-internal channel
+6. **Health Monitoring**: Built-in connection validation and service health checks
 
 ## Development
 
@@ -178,7 +183,7 @@ uv run ruff format
 # Run linting
 uv run ruff check
 
-# Run tests (when implemented)
+# Run tests
 uvx pytest
 ```
 
@@ -253,12 +258,15 @@ If posting to a customer channel fails with `channel_not_found`:
   - [x] Connection validation and health checks
   - [x] Basic message formatting as bridge to LLM integration
 
-### In Progress
-- [ ] **Phase 3**: LLM Message Formatting
-  - [ ] OpenAI agents integration for intelligent message formatting
-  - [ ] Custom message formatting based on notification type and unstructured data
-  - [ ] Blue Bot persona implementation for consistent tone
-  - [ ] Support for single string or array of strings in data parameter
+### Completed (Phase 3)
+- [x] **LLM Message Formatting**
+  - [x] OpenAI integration for intelligent message formatting
+  - [x] Custom message formatting based on notification type and unstructured data
+  - [x] Blue Bot persona implementation for consistent tone
+  - [x] Support for single string or array of strings in data parameter
+  - [x] Dynamic formatting with friendly, contextual messages
+  - [x] Type-specific formatting (change, learning, update notifications)
+
 
 ## Documentation
 
